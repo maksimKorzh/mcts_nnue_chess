@@ -1,7 +1,6 @@
 # packages
 import chess
 from copy import deepcopy
-from mcts import mcts as MCTS
 
 # board state class
 class State:
@@ -44,25 +43,6 @@ class State:
         
         # return new state with action naken on board
         return new_state
-    
-    # get side
-    def get_side(self):
-        # case white to move
-        if self.board.turn == True:
-            return 1
-        
-        # case black to move
-        elif self.board.turn == False:
-            return -1
-    
-    # game loop
-    def game_loop(self):
-        # create MCTS instance
-        mcts = MCTS(timeLimit=1000)
-        
-        # search position for the best move
-        best_move = mcts.search(self)
-        print('Bestmove', best_move)
 
     # output current state's board position
     def __str__(self):

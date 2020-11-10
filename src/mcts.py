@@ -21,26 +21,18 @@ def randomPolicy(state):
     return state.getReward()
 
 # NNUE evalauation
-def nnue_policy(state):
-    #print('nnue', state)
-    #import chess
-    
-    #board = chess.Board('rnbqkbnr/pppppppp/8/8/8/8/PPP1PPPP/RNBQKBNR w KQkq - 0 1') #'r3K3/q7/k7/8/8/8/8/8 w - - 0 0'
-    #print(board)
-    
+def nnue_policy(state):    
     # case black is checkmated
-    #if board.is_checkmate() and board.turn == False:
-    #    print(board, board.turn)
-    #    return -10000
+    if state.board.is_checkmate(): return -10000
     
-    # case white is checkmated
-    #if board.is_checkmate() and board.turn == True:
-    #    print(board, board.turn)
+    # case stale mate
+    elif state.board.is_stalemate(): return 0
     
-     
-    #can_claim_draw()
-    #is_insufficient_material()
-    #is_stalemate() 
+    # case draw
+    elif state.board.can_claim_draw(): return 0
+        
+    # case in insufficient material  
+    elif state.board.is_insufficient_material(): return 0
     
     # get NNUE evaluation score
     return nnue.nnue_evaluate_fen(bytes(state.board.fen(), encoding='utf-8'))
@@ -88,7 +80,7 @@ class mcts():
                 self.executeRound()
 
         bestChild = self.getBestChild(self.root, 0)
-        return self.getAction(self.root, bestChild)
+        return self.getAction(self.root, bestChild), nnue_policy(bestChild.state)
 
     def executeRound(self):
         node = self.selectNode(self.root)
@@ -116,21 +108,19 @@ class mcts():
         raise Exception("Should never reach here")
 
     def backpropogate(self, node, reward):
+        turn = -1
         while node is not None:
             node.numVisits += 1
-            node.totalReward += reward
+            node.totalReward += reward * turn
             node = node.parent
+            turn *= -1
 
     def getBestChild(self, node, explorationValue):
         bestValue = float("-inf")
         bestNodes = []
         for child in node.children.values():
-            nodeValue = node.state.get_side() * child.totalReward / child.numVisits + explorationValue * math.sqrt(
+            nodeValue = child.totalReward / child.numVisits + explorationValue * math.sqrt(
                 2 * math.log(node.numVisits) / child.numVisits)
-                
-            if explorationValue == 0:
-                print(child.state.board)
-                print('\ntotal score: %s\n\n' % child.totalReward)
             
             if nodeValue > bestValue:
                 bestValue = nodeValue

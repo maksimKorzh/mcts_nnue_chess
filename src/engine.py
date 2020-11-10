@@ -5,9 +5,12 @@
 
 # packages
 from state import *
+from uci import *
 
 # create initial state instance
 state = State()
 
-# run game loop
-state.game_loop()
+# run engine in UCI mode
+uci_loop(state)
+
+# 4K3/r7/6k1/8/8/8/8/q7 b - - 0 1 
